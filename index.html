@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizzaria Bella Massa</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Bibliotecas para Gráficos e PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <header id="main-header" class="header hidden">
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Logo Bella Massa" class="brand-logo">
+      <span>Bella Massa</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-link" onclick="navigate('hub')"><i class="fa-solid fa-house"></i> Início</button>
+      <button class="nav-link" onclick="navigate('waiter')"><i class="fa-solid fa-user-tie"></i> Garçom</button>
+      <button class="nav-link" onclick="navigate('barmen')"><i class="fa-solid fa-martini-glass-citrus"></i> Barmen</button>
+      <button class="nav-link" onclick="navigate('pizzaiolo')"><i class="fa-solid fa-fire"></i> Pizzaiolo</button>
+      <button class="nav-link" onclick="navigate('cashier')"><i class="fa-solid fa-cash-register"></i> Caixa & DRE</button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- HUB INICIAL -->
+    <section id="view-hub" class="view active">
+      <div class="hub-welcome">
+        <img src="logo.jpg" alt="Bella Massa Logo" class="hub-brand-logo">
+        <h2>Selecione o Módulo de Acesso</h2>
+        <p>Painel Integrado de Gestão Bella Massa</p>
+      </div>
+
+      <div class="hub-grid">
+        <div class="hub-card client-card" onclick="navigate('qr')">
+          <div class="hub-icon"><i class="fa-solid fa-qrcode"></i></div>
+          <h3>1. Cliente / QR Code</h3>
+          <p>Cardápio digital interativo</p>
+        </div>
+        <div class="hub-card waiter-card" onclick="navigate('waiter')">
+          <div class="hub-icon"><i class="fa-solid fa-user-tie"></i></div>
+          <h3>2. Garçom</h3>
+          <p>Autorização de pedidos e serviço</p>
+        </div>
+        <div class="hub-card barmen-card" onclick="navigate('barmen')">
+          <div class="hub-icon"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+          <h3>3. Barman / Bar</h3>
+          <p>Preparo de bebidas com histórico</p>
+        </div>
+        <div class="hub-card pizzaiolo-card" onclick="navigate('pizzaiolo')">
+          <div class="hub-icon"><i class="fa-solid fa-fire"></i></div>
+          <h3>4. Pizzaiolo / Cozinha</h3>
+          <p>Preparo de alimentos com histórico</p>
+        </div>
+        <div class="hub-card cashier-card" onclick="navigate('cashier')">
+          <div class="hub-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>5. Caixa & Relatórios</h3>
+          <p>Dashboard de faturamento, comandas e PDFs</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIENTE -->
+    <section id="view-qr" class="view">
+      <button class="btn-back-hub" onclick="navigate('hub')">
+        <i class="fa-solid fa-arrow-left"></i> Voltar ao Início
+      </button>
+
+      <div id="qr-display" class="table-select-screen">
+        <img src="logo.jpg" alt="Logo Bella Massa" class="select-logo">
+        <h2>Seja Bem-Vindo!</h2>
+        <p>Informe a sua mesa:</p>
+        <div class="select-box">
+          <i class="fa-solid fa-chair"></i>
+          <select id="table-select-qr" onchange="updateSelectedTable(this.value)">
+            <option value="1">Mesa 01</option>
+            <option value="2">Mesa 02</option>
+            <option value="3">Mesa 03</option>
+            <option value="4">Mesa 04</option>
+            <option value="5">Mesa 05</option>
+            <option value="6">Mesa 06</option>
+            <option value="7" selected>Mesa 07</option>
+            <option value="8">Mesa 08</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-large" onclick="startClientMenu()">
+          Abrir Cardápio (Mesa <span class="lbl-mesa">07</span>)
+        </button>
+      </div>
+
+      <div id="client-menu" class="client-menu-wrapper hidden">
+        <div class="client-header">
+          <button class="btn-back-sm" onclick="resetClientMenu()">
+            <i class="fa-solid fa-arrow-left"></i> Trocar Mesa
+          </button>
+          <div class="mesa-badge"><i class="fa-solid fa-utensils"></i> Mesa <span class="lbl-mesa">07</span></div>
+        </div>
+
+        <div class="categories-scroll">
+          <button class="cat-chip active" onclick="filterCategory('all', this)">Todos os Itens</button>
+          <button class="cat-chip" onclick="filterCategory('pizzas', this)">Pizzas Tradicionais</button>
+          <button class="cat-chip" onclick="filterCategory('especiais', this)">Pizzas Especiais</button>
+          <button class="cat-chip" onclick="filterCategory('bebidas', this)">Bebidas & Drinks</button>
+          <button class="cat-chip" onclick="filterCategory('sobremesas', this)">Sobremesas</button>
+        </div>
+
+        <div class="products-grid" id="products-list"></div>
+
+        <div class="cart-floating-bar" onclick="openCartModal()">
+          <div class="cart-info">
+            <div class="cart-icon"><i class="fa-solid fa-basket-shopping"></i> <span id="cart-qty">0</span></div>
+            <div>
+              <span class="cart-label">Seu Pedido</span>
+              <div class="cart-price" id="cart-total-val">R$ 0,00</div>
+            </div>
+          </div>
+          <button class="btn btn-cart">Ver Carrinho <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GARÇOM -->
+    <section id="view-waiter" class="view">
+      <div class="view-header">
+        <h2><i class="fa-solid fa-user-tie"></i> Painel do Garçom</h2>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchWaiterTab('confirm', this)">
+          Aguardando Autorização <span class="badge" id="badge-confirm">0</span>
+        </button>
+        <button class="tab-btn" onclick="switchWaiterTab('deliver', this)">
+          Prontos para Servir <span class="badge badge-success" id="badge-deliver">0</span>
+        </button>
+      </div>
+
+      <div id="tab-waiter-confirm" class="tab-content active">
+        <div id="waiter-pending-list" class="orders-grid"></div>
+      </div>
+
+      <div id="tab-waiter-deliver" class="tab-content hidden">
+        <div id="waiter-ready-list" class="orders-grid"></div>
+      </div>
+    </section>
+
+    <!-- BARMAN -->
+    <section id="view-barmen" class="view">
+      <div class="view-header">
+        <h2><i class="fa-solid fa-martini-glass-citrus"></i> BARMAN - Gestão de Bebidas</h2>
+      </div>
+
+      <div class="sla-legend">
+        <span class="legend-item"><span class="dot dot-green"></span> Até 25 min</span>
+        <span class="legend-item"><span class="dot dot-yellow"></span> 26 a 50 min</span>
+        <span class="legend-item"><span class="dot dot-red"></span> 51+ min</span>
+      </div>
+
+      <div class="kds-layout">
+        <div class="kds-section">
+          <h3><i class="fa-solid fa-fire-burner"></i> Fila de Preparo</h3>
+          <div id="barmen-list" class="kds-grid"></div>
+        </div>
+        <div class="kds-history-section">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Concluídos</h3>
+          <div id="barmen-history-list" class="kds-history-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIZZAIOLO -->
+    <section id="view-pizzaiolo" class="view">
+      <div class="view-header">
+        <h2><i class="fa-solid fa-fire"></i> PIZZAIOLO / COZINHA - Gestão de Pizzas & Pratos</h2>
+      </div>
+
+      <div class="sla-legend">
+        <span class="legend-item"><span class="dot dot-green"></span> Até 25 min</span>
+        <span class="legend-item"><span class="dot dot-yellow"></span> 26 a 50 min</span>
+        <span class="legend-item"><span class="dot dot-red"></span> 51+ min</span>
+      </div>
+
+      <div class="kds-layout">
+        <div class="kds-section">
+          <h3><i class="fa-solid fa-fire-burner"></i> Fila de Preparo</h3>
+          <div id="pizzaiolo-list" class="kds-grid"></div>
+        </div>
+        <div class="kds-history-section">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Concluídos</h3>
+          <div id="pizzaiolo-history-list" class="kds-history-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAIXA E FINANCEIRO -->
+    <section id="view-cashier" class="view">
+      <div class="view-header">
+        <h2><i class="fa-solid fa-cash-register"></i> Caixa & Relatório Financeiro</h2>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span>Faturamento Total</span>
+          <h3 id="metric-total-sales">R$ 0,00</h3>
+        </div>
+        <div class="metric-card">
+          <span>Comandas Fechadas</span>
+          <h3 id="metric-closed-bills">0</h3>
+        </div>
+        <div class="metric-card">
+          <span>Ticket Médio</span>
+          <h3 id="metric-avg-ticket">R$ 0,00</h3>
+        </div>
+      </div>
+
+      <div class="cashier-grid">
+        <div class="card">
+          <h3>Mapa de Mesas</h3>
+          <div class="tables-grid" id="tables-map-grid"></div>
+        </div>
+
+        <div class="card">
+          <h3>Comanda da <span id="bill-table-title">Selecione uma mesa</span></h3>
+          <div id="bill-details" class="bill-content">
+            <p class="empty-msg">Clique em uma mesa ocupada para consultar o detalhamento e gerar o relatório.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container-card card">
+        <h3><i class="fa-solid fa-chart-pie"></i> Faturamento por Categoria de Produtos</h3>
+        <div class="chart-wrapper">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL PRODUTO -->
+  <div id="modal-product" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal('modal-product')">&times;</button>
+      <img id="modal-item-img" src="" alt="" class="modal-product-img">
+      <div class="modal-body">
+        <h3 id="modal-item-title"></h3>
+        <p id="modal-item-desc" class="modal-product-desc"></p>
+        <div class="price-badge" id="modal-item-price">R$ 0,00</div>
+        
+        <div class="input-group">
+          <label><i class="fa-solid fa-comment-dots"></i> Observações:</label>
+          <input type="text" id="modal-item-obs" placeholder="Ex: Sem cebola, gelo e limão...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-product')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmAddToCart()">Adicionar ao Pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CARRINHO -->
+  <div id="modal-cart" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-basket-shopping"></i> Seu Pedido (Mesa <span class="lbl-mesa">07</span>)</h3>
+        <button class="close-modal" onclick="closeModal('modal-cart')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="cart-items-list" class="cart-items-wrapper"></div>
+        <div class="cart-total-row">
+          <span>Total:</span>
+          <span id="cart-modal-subtotal" class="total-highlight">R$ 0,00</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-cart')">Voltar</button>
+        <button class="btn btn-success" onclick="submitClientOrder()">Enviar p/ Garçom Autorizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FEEDBACK -->
+  <div id="modal-feedback" class="modal">
+    <div class="modal-content text-center">
+      <div class="success-icon"><i class="fa-solid fa-paper-plane"></i></div>
+      <h3>Pedido Encaminhado!</h3>
+      <p>Aguarde a validação do garçom. O pedido irá direto para a cozinha e bar assim que aprovado.</p>
+      <button class="btn btn-primary" onclick="closeModal('modal-feedback')">Voltar ao Cardápio</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
